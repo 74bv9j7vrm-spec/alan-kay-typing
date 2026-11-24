@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>DYNABOOK SUSHI TYPING // VS ALAN KAY (1968)</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif;
+      background-color: #2b2723;
+      color: #f4efe6;
+      overflow-x: hidden;
+    }
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .retro-bezel {
+      background: linear-gradient(145deg, #dfd6c3 0%, #c8bca4 100%);
+      box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.55),
+        inset 0 2px 3px rgba(255, 255, 255, 0.7),
+        inset 0 -4px 8px rgba(90, 80, 60, 0.4);
+      border: 2px solid #9e9178;
+    }
+    .crt-frame {
+      background: #141714;
+      box-shadow:
+        inset 0 0 28px rgba(0, 0, 0, 0.9),
+        0 0 0 4px #302d28;
+      position: relative;
+      overflow: hidden;
+    }
+    .crt-scanlines::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0) 0px,
+        rgba(0, 0, 0, 0) 2px,
+        rgba(0, 0, 0, 0.16) 3px,
+        rgba(0, 0, 0, 0.16) 4px
+      );
+      z-index: 10;
+    }
+    .pixel-canvas {
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+    .keycap-btn {
+      background: linear-gradient(180deg, #ede6d8 0%, #cfc4ae 100%);
+      color: #2d2924;
+      border: 1px solid #8c806a;
+      box-shadow: 0 3px 0 #7a6f5b, 0 4px 6px rgba(0, 0, 0, 0.25);
+      transition: transform 0.08s ease, box-shadow 0.08s ease;
+    }
+    .keycap-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 #7a6f5b;
+    }
+    /* Xerox Alto Physical Keyboard */
+    .alto-keyboard-shell {
+      background: linear-gradient(175deg, #e5dcc9 0%, #cfc3aa 60%, #b9ac92 100%);
+      border: 2px solid #968970;
+      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.45), inset 0 2px 2px rgba(255, 255, 255, 0.65);
+    }
+    .alto-key-well {
+      background: #272420;
+      box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.75);
+    }
+    .alto-key {
+      background: linear-gradient(180deg, #e7e2d8 0%, #ccc5b8 100%);
+      color: #292524;
+      border-top: 1px solid #f5f2eb;
+      border-bottom: 3px solid #8c8476;
+      border-left: 1px solid #b5ada0;
+      border-right: 1px solid #b5ada0;
+      transition: transform 0.05s ease, border-bottom-width 0.05s ease, filter 0.05s ease;
+      user-select: none;
+    }
+    .alto-key-dark {
+      background: linear-gradient(180deg, #4b4844 0%, #2e2c29 100%);
+      color: #e7e5e4;
+      border-top: 1px solid #6b6761;
+      border-bottom: 3px solid #171614;
+      border-left: 1px solid #3c3935;
+      border-right: 1px solid #3c3935;
+    }
+    .alto-key.is-pressed {
+      transform: translateY(2px);
+      border-bottom-width: 1px;
+      background: linear-gradient(180deg, #fde68a 0%, #f59e0b 100%);
+      color: #1c1917;
+    }
+    .shake-anim {
+      animation: shake 0.18s ease-in-out;
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-2 sm:p-4">
+
+  <!-- Retro Terminal Shell -->
+  <div class="retro-bezel rounded-3xl p-3 sm:p-5 w-full max-w-4xl">
+    <!-- Header Bar -->
+    <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5 px-1">
+      <div class="flex items-center gap-2">
+        <span class="w-3 h-3 rounded-full bg-[#b88b4a] shadow-inner inline-block"></span>
+        <h1 class="mono text-xs sm:text-sm font-extrabold tracking-wider text-stone-800 uppercase">
+          DYNABOOK TYPING BATTLE <span class="text-stone-500 font-semibold">// VS ALAN KAY 1968</span>
+        </h1>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <button id="crtModeBtn" type="button" class="keycap-btn px-2.5 py-1 rounded-md text-[11px] font-bold mono">
+          📺 COLOR
+        </button>
+        <button id="soundBtn" type="button" class="keycap-btn px-2.5 py-1 rounded-md text-[11px] font-bold mono">
+          🔊 SFX ON
+        </button>
+        <button id="pauseBtn" type="button" class="hidden keycap-btn px-2.5 py-1 rounded-md text-[11px] font-bold mono">
+          ⏸ 一時停止
+        </button>
+        <button id="quitBtn" type="button" class="hidden keycap-btn px-2.5 py-1 rounded-md text-[11px] font-bold mono">
+          ↺ タイトルへ
+        </button>
+      </div>
+    </div>
+
+    <!-- CRT Screen -->
+    <div id="crtScreen" class="crt-frame crt-scanlines rounded-2xl w-full">
+      <!-- Top HUD -->
+      <div class="relative z-20 flex flex-wrap items-center justify-between gap-2 px-3 sm:px-4 pt-2.5 pb-1.5 border-b border-stone-800 bg-stone-950/70 text-[11px] sm:text-xs mono font-bold">
+        <div class="flex items-center gap-3 sm:gap-5">
+          <div class="text-[#84a9c0]">YOU <span id="hudPlayerScore" class="text-[#ebe6dc]">¥0</span></div>
+          <div class="text-[#c97b7b]">ALAN <span id="hudAlanScore" class="text-[#ebe6dc]">¥0</span></div>
+          <div class="hidden sm:block text-[#88ad8e]">STREAK <span id="hudStreak" class="text-[#ebe6dc]">0</span></div>
+        </div>
+        <div class="flex items-center gap-3">
+          <span id="hudLevelBadge" class="px-2 py-0.5 rounded bg-[#272622] text-[#cbb68d] border border-[#4a473f] text-[10px]">
+            LEVEL: -
+          </span>
+          <div class="text-[#d4b475]">TIME <span id="hudTime" class="text-[#ebe6dc] text-sm">60</span>s</div>
+        </div>
+      </div>
+
+      <!-- Main Stage Area -->
+      <div id="stageWrap" class="relative w-full h-[360px] sm:h-[400px] overflow-hidden">
+        <canvas id="gameCanvas" class="pixel-canvas w-full h-full block"></canvas>
+
+        <!-- Active Typing Card (Sushi-da Style Center Plate) -->
+        <div id="typingCardWrap" class="hidden absolute inset-x-0 top-[96px] sm:top-[108px] z-20 flex flex-col items-center px-3 pointer-events-none">
+          <div id="typingCard" class="bg-[#1e1d1a]/95 border-2 border-[#a88d60] rounded-2xl px-5 py-3.5 shadow-2xl max-w-xl w-full text-center">
+            <div class="flex items-center justify-between text-[10px] mono text-stone-400 mb-1">
+              <span id="cardCategory" class="px-2 py-0.5 rounded bg-[#b88b4a]/20 text-[#d4b475] font-bold">名言</span>
+              <span id="cardPrice" class="text-[#88ad8e] font-bold">+¥300</span>
+            </div>
+            <div id="cardKanji" class="text-base sm:text-xl font-extrabold text-[#f2ede2] tracking-wide mb-0.5">
+              未来を予測する最善の方法
+            </div>
+            <div id="cardKana" class="text-xs text-stone-400 mb-2">
+              みらいをよそくするさいぜんのほうほう
+            </div>
+            <div id="cardRomaji" class="mono text-sm sm:text-lg font-bold tracking-widest break-all leading-relaxed">
+              <!-- Typed vs remaining spans -->
+            </div>
+          </div>
+          <!-- Hidden input for mobile virtual keyboard support -->
+          <input id="mobileInput" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" class="opacity-0 w-1 h-1 pointer-events-auto" aria-label="タイピング入力" />
+        </div>
+
+        <!-- Pause Overlay -->
+        <div id="pauseOverlay" class="hidden absolute inset-0 z-30 flex flex-col items-center justify-center bg-[#141513]/85 backdrop-blur-xs p-4 text-center">
+          <div class="mono text-[11px] font-bold px-2.5 py-0.5 rounded bg-[#b88b4a]/20 text-[#d4b475] border border-[#a88d60]/50 mb-2">
+            SYSTEM PAUSED
+          </div>
+          <h2 class="mono text-xl sm:text-2xl font-extrabold text-[#ebe6dc] mb-3">一時停止中</h2>
+          <button id="resumeBtn" type="button" class="px-6 py-2 rounded-xl bg-[#b88b4a] hover:bg-[#c79a58] text-[#1a1815] font-extrabold mono text-xs sm:text-sm shadow-lg">
+            ▶ 再開する
+          </button>
+        </div>
+
+        <!-- Title / Level Select Overlay -->
+        <div id="titleOverlay" class="absolute inset-0 z-30 flex flex-col items-center justify-center bg-stone-950/88 p-4 text-center overflow-y-auto">
+          <div class="mono text-[10px] sm:text-[11px] font-bold px-2.5 py-0.5 rounded bg-[#b88b4a]/20 text-[#d4b475] border border-[#a88d60]/50 mb-1.5">
+            1968 RETRO SUSHI-STYLE TYPING
+          </div>
+          <h2 class="mono text-lg sm:text-2xl font-extrabold text-white tracking-tight mb-1">
+            アラン・ケイとタイピング対決！
+          </h2>
+          <p class="text-[11px] sm:text-xs text-stone-300 mb-3 max-w-lg">
+            次々と現れる「名言・早口言葉・親父ギャグ」をタイプして、アラン・ケイより多く稼ごう！
+          </p>
+
+          <!-- Genre selector -->
+          <div class="flex flex-wrap items-center justify-center gap-1.5 mb-3">
+            <span class="mono text-[10px] text-stone-400 mr-1">お題コース:</span>
+            <button type="button" data-genre="all" class="genre-btn px-2.5 py-1 rounded-lg text-[11px] font-bold bg-[#b88b4a] text-[#1a1815]">ぜんぶ入り</button>
+            <button type="button" data-genre="quote" class="genre-btn px-2.5 py-1 rounded-lg text-[11px] font-bold bg-stone-800 text-stone-300 hover:bg-stone-700">💡 アラン・ケイ名言</button>
+            <button type="button" data-genre="tongue" class="genre-btn px-2.5 py-1 rounded-lg text-[11px] font-bold bg-stone-800 text-stone-300 hover:bg-stone-700">👅 早口言葉</button>
+            <button type="button" data-genre="oyaji" class="genre-btn px-2.5 py-1 rounded-lg text-[11px] font-bold bg-stone-800 text-stone-300 hover:bg-stone-700">🤣 親父ギャグ</button>
+          </div>
+
+          <!-- 5 Levels with Pixel Alan Kay Previews -->
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-1.5 w-full max-w-3xl">
+            <button type="button" data-level="0" class="level-btn bg-[#24302a]/90 hover:bg-[#2d3d35] border border-[#546e60] rounded-xl p-2 flex flex-col items-center text-center transition">
+              <canvas data-preview-level="0" width="42" height="42" class="pixel-canvas mb-1"></canvas>
+              <div class="text-[10px] mono text-[#94b09f] font-bold">LV.1 ★☆☆☆☆</div>
+              <div class="text-[11px] font-extrabold text-[#ebe6dc] mt-0.5 leading-tight">ベイビー・アランケイ</div>
+              <div class="text-[9px] text-[#94b09f]/80 mt-0.5">よちよち速度</div>
+            </button>
+            <button type="button" data-level="1" class="level-btn bg-[#232c36]/90 hover:bg-[#2b3744] border border-[#526578] rounded-xl p-2 flex flex-col items-center text-center transition">
+              <canvas data-preview-level="1" width="42" height="42" class="pixel-canvas mb-1"></canvas>
+              <div class="text-[10px] mono text-[#93abc2] font-bold">LV.2 ★★☆☆☆</div>
+              <div class="text-[11px] font-extrabold text-[#ebe6dc] mt-0.5 leading-tight">少年・アランケイ</div>
+              <div class="text-[9px] text-[#93abc2]/80 mt-0.5">たのしい速度</div>
+            </button>
+            <button type="button" data-level="2" class="level-btn bg-[#332c20]/90 hover:bg-[#403728] border border-[#7d6c4d] rounded-xl p-2 flex flex-col items-center text-center transition">
+              <canvas data-preview-level="2" width="42" height="42" class="pixel-canvas mb-1"></canvas>
+              <div class="text-[10px] mono text-[#c9b489] font-bold">LV.3 ★★★☆☆</div>
+              <div class="text-[11px] font-extrabold text-[#ebe6dc] mt-0.5 leading-tight">アランケイ・ノーマル</div>
+              <div class="text-[9px] text-[#c9b489]/80 mt-0.5">標準バトル</div>
+            </button>
+            <button type="button" data-level="3" class="level-btn bg-[#362822]/90 hover:bg-[#45322a] border border-[#825c4b] rounded-xl p-2 flex flex-col items-center text-center transition">
+              <canvas data-preview-level="3" width="42" height="42" class="pixel-canvas mb-1"></canvas>
+              <div class="text-[10px] mono text-[#cca08e] font-bold">LV.4 ★★★★☆</div>
+              <div class="text-[11px] font-extrabold text-[#ebe6dc] mt-0.5 leading-tight">スーパーシニア・アランケイ</div>
+              <div class="text-[9px] text-[#cca08e]/80 mt-0.5">かなりの高速！</div>
+            </button>
+            <button type="button" data-level="4" class="level-btn col-span-2 sm:col-span-1 bg-[#332229]/90 hover:bg-[#422b34] border border-[#7d5062] rounded-xl p-2 flex flex-col items-center text-center transition">
+              <canvas data-preview-level="4" width="42" height="42" class="pixel-canvas mb-1"></canvas>
+              <div class="text-[10px] mono text-[#c491a4] font-bold">LV.5 ★★★★★</div>
+              <div class="text-[11px] font-extrabold text-[#ebe6dc] mt-0.5 leading-tight">伝説・ダイナブック神</div>
+              <div class="text-[9px] text-[#c491a4]/80 mt-0.5">限界突破！！</div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Result Overlay -->
+        <div id="resultOverlay" class="hidden absolute inset-0 z-30 flex flex-col items-center justify-center bg-stone-950/90 p-4 text-center">
+          <div id="resultBadge" class="mono text-xs font-extrabold px-3 py-1 rounded-full mb-2 bg-amber-500 text-stone-950">
+            YOU WIN!
+          </div>
+          <h2 id="resultTitle" class="mono text-xl sm:text-3xl font-extrabold text-white mb-2">
+            アラン・ケイに勝利！
+          </h2>
+          <div class="grid grid-cols-2 gap-3 bg-stone-900 border border-stone-700 rounded-2xl p-3.5 mb-4 w-full max-w-sm mono text-xs sm:text-sm">
+            <div>
+              <div class="text-sky-400 text-[10px]">あなたの売上</div>
+              <div id="resPlayerScore" class="text-lg font-extrabold text-white">¥0</div>
+              <div id="resPlayerPlates" class="text-[11px] text-stone-400">0 問</div>
+            </div>
+            <div>
+              <div id="resAlanName" class="text-rose-400 text-[10px]">アラン・ケイ</div>
+              <div id="resAlanScore" class="text-lg font-extrabold text-white">¥0</div>
+              <div id="resStats" class="text-[11px] text-stone-400">正確率 100%</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="retryBtn" type="button" class="px-5 py-2 rounded-xl bg-[#b88b4a] hover:bg-[#c79a58] text-[#1a1815] font-extrabold mono text-xs sm:text-sm">
+              ↻ 同じレベルでもう一度
+            </button>
+            <button id="backTitleBtn" type="button" class="px-4 py-2 rounded-xl bg-stone-700 hover:bg-stone-600 text-white font-bold mono text-xs sm:text-sm">
+              レベル選択へ
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Xerox Alto Interactive Physical Keyboard -->
+  <div class="w-full max-w-4xl mt-3 flex flex-col items-center px-1">
+    <div class="alto-keyboard-shell rounded-2xl p-2.5 sm:p-3.5 w-full max-w-2xl">
+      <div class="flex items-center justify-between px-1 mb-1.5">
+        <span class="mono text-[9px] font-bold text-stone-600 tracking-widest uppercase">XEROX ALTO KEYBOARD // TYPE TO PLAY</span>
+        <button id="focusMobileBtn" type="button" class="sm:hidden mono text-[9px] font-bold text-amber-800 underline">スマホキーボードを出す</button>
+        <span class="hidden sm:inline mono text-[9px] text-stone-600">実キーボードでも画面クリックでも入力できます</span>
+      </div>
+      <div id="altoKeyboard" class="alto-key-well rounded-xl p-1.5 sm:p-2 space-y-1"></div>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // 1. Pixel Art Sprites (Alan Kay & 1960s Sushi Plates)
+    // =========================================================================
+    const PALETTE = {
+      '.': null,
+      'H': '#a3a098', // Vintage gray hair
+      'h': '#6f6c65',
+      'B': '#5c3c24', // Warm brown hair
+      'Y': '#cca34d', // Muted mustard gold
+      'S': '#e8c298', // Warm skin tone
+      'E': '#262421', // Charcoal eyes
+      'R': '#9e3e3e', // Muted brick red fleece
+      'C': '#648ca6', // Muted slate blue shirt
+      'J': '#3d5270', // Faded denim
+      'K': '#3b3834', // Dark charcoal
+      'W': '#ebe6dc', // Warm off-white
+      'w': '#b8b2a6',
+      'G': '#5d8f6e', // Muted sage green
+      'P': '#a8647c'  // Dusty rose
+    };
+
+    const ALAN_SPRITE_BASE = [
+      '....HHHHHh....',
+      '...HHHHHHHh...',
+      '...HHSSSSSH...',
+      '...HSESSSSH...',
+      '...HSHHHSSH...',
+      '....SSSSSS....',
+      '...RRRRRRRR...',
+      '..RRRRWWWRRR..',
+      '..R.RRWWWR.R..',
+      '....RRRRRR....',
+      '....JJJJJJ....',
+      '...JJJ..JJJ...',
+      '..JJJ....JJJ..',
+      '..KK......KK..'
+    ];
+
+    // Distinct 14x14 pixel sprites for each of the 5 Alan Kay levels
+    const ALAN_BABY = [
+      '..............',
+      '......BB......',
+      '....SSSSSS....',
+      '...SSESSSES...',
+      '...SSSPPPSS...', // cute pacifier
+      '....SSSSSS....',
+      '...CCCCCCCC...', // baby romper
+      '...CCCCCCCC...',
+      '....WWWWWW....', // diaper
+      '....WWWWWW....',
+      '...SS....SS...',
+      '...SS....SS...',
+      '..............',
+      '..............'
+    ];
+
+    const ALAN_BOY = [
+      '....BBBBBB....',
+      '...BBBBBBBB...',
+      '...BBSSSSSB...',
+      '...BSESSSSB...',
+      '....SSSSSS....',
+      '....CCCCCC....', // t-shirt
+      '...CCCCCCCC...',
+      '..S.CCCCCC.S..',
+      '....JJJJJJ....', // shorts
+      '....JJ..JJ....',
+      '....SS..SS....',
+      '....KK..KK....',
+      '..............',
+      '..............'
+    ];
+
+    const ALAN_SENIOR = [
+      '...WWWWWWWW...',
+      '..WWWWWWWWWW..',
+      '..WWSSSSSSWW..',
+      '..WWSESSSSWW..',
+      '..WWWHHHWWWW..', // thick white beard/mustache
+      '...WWWWWWWW...',
+      '..RRRRRRRRRR..',
+      '..RRRWWWWWRR..',
+      '...RRRRRRRR...',
+      '....JJJJJJ....',
+      '...JJJ..JJJ...',
+      '..KK......KK..',
+      '..............',
+      '..............'
+    ];
+
+    const ALAN_GOD = [
+      '..Y..Y..Y..Y..', // golden crown/aura
+      '...YYYYYYYY...',
+      '..YYHHHHHHYY..',
+      '..YHSSSSSSHY..',
+      '..YHSESSSSHY..',
+      '..YHHHHHHHYY..',
+      '.PYYYYWWYYYYP.', // radiant robe & dynabook
+      '.P.YYYWWYYY.P.',
+      '....YYYYYY....',
+      '....PPPPPP....',
+      '...PPP..PPP...',
+      '..YY......YY..',
+      '..............',
+      '..............'
+    ];
+
+    function getAlanSpriteForLevel(lvl) {
+      if (lvl === 0) return ALAN_BABY;
+      if (lvl === 1) return ALAN_BOY;
+      if (lvl === 3) return ALAN_SENIOR;
+      if (lvl === 4) return ALAN_GOD;
+      return ALAN_SPRITE_BASE;
+    }
+
+    function renderLevelPreviews() {
+      document.querySelectorAll('[data-preview-level]').forEach((cvs) => {
+        const lvl = Number(cvs.getAttribute('data-preview-level'));
+        const pctx = cvs.getContext('2d');
+        pctx.imageSmoothingEnabled = false;
+        pctx.clearRect(0, 0, cvs.width, cvs.height);
+        drawPixelSprite(pctx, getAlanSpriteForLevel(lvl), 0, 0, 3);
+      });
+    }
+
+    const PLAYER_SPRITE = ALAN_SPRITE_BASE.map((row) => row.replace(/R/g, 'C'));
+
+    const PLATE_SPRITE = [
+      '..WWWWWWWWWW..',
+      '.WCCCCCCCCCCW.',
+      'WYYYYYYYYYYYYW',
+      '.wwwwwwwwwwww.'
+    ];
+
+    function drawPixelSprite(ctx, sprite, x, y, ps) {
+      for (let r = 0; r < sprite.length; r++) {
+        const row = sprite[r];
+        for (let c = 0; c < row.length; c++) {
+          const col = PALETTE[row[c]];
+          if (col) {
+            ctx.fillStyle = col;
+            ctx.fillRect(Math.round(x + c * ps), Math.round(y + r * ps), ps, ps);
+          }
+        }
+      }
+    }
+
+    // =========================================================================
+    // 2. Prompts (Quotes, Tongue Twisters, Oyaji Gags) + Romaji Engine
+    // =========================================================================
+    const PROMPTS = [
+      // Alan Kay Quotes & Terms (15)
+      { genre: 'quote', tag: '💡 名言', text: '未来を予測する最善の方法はそれを発明することだ', kana: 'みらいをよそくするさいぜんのほうほうはそれをはつめいすることだ', price: 540 },
+      { genre: 'quote', tag: '💡 名言', text: 'ダイナブック構想', kana: 'だいなぶっくこうそう', price: 240 },
+      { genre: 'quote', tag: '💡 名言', text: 'すべての年齢の子どもたちへ', kana: 'すべてのねんれいのこどもたちへ', price: 320 },
+      { genre: 'quote', tag: '💡 用語', text: 'スモールトークでメッセージを送る', kana: 'すもーるとーくでめっせーじをおくる', price: 380 },
+      { genre: 'quote', tag: '💡 名言', text: 'シンプルなことはシンプルに', kana: 'しんぷるなことはしんぷるに', price: 300 },
+      { genre: 'quote', tag: '💡 用語', text: 'ゼロックスパロアルト研究所', kana: 'ぜろっくすぱろあるとけんきゅうじょ', price: 420 },
+      { genre: 'quote', tag: '💡 用語', text: 'オブジェクト指向プログラミング', kana: 'おぶじぇくとしこうぷろぐらみんぐ', price: 400 },
+      { genre: 'quote', tag: '💡 用語', text: '重なり合うウィンドウとマウス', kana: 'かさなりあううぃんどうとまうす', price: 360 },
+      { genre: 'quote', tag: '💡 名言', text: 'コンピュータは新しいメディアだ', kana: 'こんぴゅーたはあたらしいめでぃあだ', price: 380 },
+      { genre: 'quote', tag: '💡 用語', text: 'スクイークで動く絵本を作る', kana: 'すくいーくでうごくえほんをつくる', price: 360 },
+      { genre: 'quote', tag: '💡 名言', text: '視点を変えれば知能は倍になる', kana: 'してんをかえればちのうはばいになる', price: 380 },
+      { genre: 'quote', tag: '💡 用語', text: 'パーソナルコンピュータの父', kana: 'ぱーそなるこんぴゅーたのちち', price: 340 },
+      { genre: 'quote', tag: '💡 用語', text: 'アルトで未来を体験する', kana: 'あるとでみらいをたいけんする', price: 320 },
+      { genre: 'quote', tag: '💡 名言', text: '学ぶことは遊ぶこと', kana: 'まなぶことはあそぶこと', price: 240 },
+      { genre: 'quote', tag: '💡 用語', text: 'インタラクションデザインの歴史', kana: 'いんたらくしょんでざいんのれきし', price: 380 },
+
+      // Tongue Twisters (15)
+      { genre: 'tongue', tag: '👅 早口言葉', text: '東京特許許可局局長', kana: 'とうきょうとっきょきょかきょくきょくちょう', price: 420 },
+      { genre: 'tongue', tag: '👅 早口言葉', text: '生麦生米生卵', kana: 'なまむぎなまごめなまたまご', price: 320 },
+      { genre: 'tongue', tag: '👅 早口言葉', text: '隣の客はよく柿食う客だ', kana: 'となりのきゃくはよくかきくうきゃくだ', price: 360 },
+      { genre: 'tongue', tag: '👅 早口言葉', text: 'バスガス爆発', kana: 'ばすがすばくはつ', price: 200 },
+      { genre: 'tongue', tag: '👅 早口言葉', text: 'すもももももももものうち', kana: 'すもももももももものうち', price: 280 },
+      { genre: 'tongue', tag: '👅 早口言葉', text: '赤巻紙青巻紙黄巻紙', kana: 'あかまきがみあおまきがみきまきがみ', price: 380 },
+      { genre: 'tongue', tag: '👅 早口言葉', text: 'かえるぴょこぴょこみぴょこぴょこ', kana: 'かえるぴょこぴょこみぴょこぴょこ', price: 360 },
+      { genre: 'tongue', tag: '👅 早口言葉', text: '老若男女がにゃんと言う', kana: 'ろうにゃくなんにょがにゃんという', price: 340 },
+      { genre: 'tongue', tag: '👅 早口言葉', text: '庭には二羽鶏がいる', kana: 'にわにはにわにわとりがいる', price: 300 },
+      { genre: 'tongue', tag: '👅 早口言葉', text: '坊主が屏風に上手に坊主の絵を描いた', kana: 'ぼうずがびょうぶにじょうずにぼうずのえをかいた', price: 460 },
+      { genre: 'tongue', tag: '👅 早口言葉', text: '打者走者勝者', kana: 'だしゃそうしゃしょうしゃ', price: 260 },
+      { genre: 'tongue', tag: '👅 早口言葉', text: '魔術師魔術修行中', kana: 'まじゅつしまじゅつしゅぎょうちゅう', price: 380 },
+      { genre: 'tongue', tag: '👅 早口言葉', text: '新設診察室', kana: 'しんせつしんさつしつ', price: 280 },
+      { genre: 'tongue', tag: '👅 早口言葉', text: '肩たたき機', kana: 'かたたたきき', price: 180 },
+      { genre: 'tongue', tag: '👅 早口言葉', text: '青パジャマ赤パジャマ黄パジャマ', kana: 'あおぱじゃまあかぱじゃまきぱじゃま', price: 380 },
+
+      // Oyaji Gags (15)
+      { genre: 'oyaji', tag: '🤣 親父ギャグ', text: '布団が吹っ飛んだ', kana: 'ふとんがふっとんだ', price: 220 },
+      { genre: 'oyaji', tag: '🤣 親父ギャグ', text: 'アルミ缶の上にあるみかん', kana: 'あるみかんのうえにあるみかん', price: 320 },
+      { genre: 'oyaji', tag: '🤣 親父ギャグ', text: 'ネコが寝込んだ', kana: 'ねこがねこんだ', price: 180 },
+      { genre: 'oyaji', tag: '🤣 親父ギャグ', text: '電話にでんわ', kana: 'でんわにでんわ', price: 180 },
+      { genre: 'oyaji', tag: '🤣 親父ギャグ', text: 'イクラはいくら', kana: 'いくらはいくら', price: 160 },
+      { genre: 'oyaji', tag: '🤣 親父ギャグ', text: 'トイレにいっといれ', kana: 'といれにいっといれ', price: 220 },
+      { genre: 'oyaji', tag: '🤣 親父ギャグ', text: 'イルカはいるか', kana: 'いるかはいるか', price: 160 },
+      { genre: 'oyaji', tag: '🤣 親父ギャグ', text: 'パンダの好物はパンだ', kana: 'ぱんだのこうぶつはぱんだ', price: 260 },
+      { genre: 'oyaji', tag: '🤣 親父ギャグ', text: 'カエルが帰る', kana: 'かえるがかえる', price: 160 },
+      { genre: 'oyaji', tag: '🤣 親父ギャグ', text: 'メガネが目がねえ', kana: 'めがねがめがねえ', price: 200 },
+      { genre: 'oyaji', tag: '🤣 親父ギャグ', text: 'カレーは辛え', kana: 'かれーはからえ', price: 180 },
+      { genre: 'oyaji', tag: '🤣 親父ギャグ', text: 'サイがさいなら', kana: 'さいがさいなら', price: 160 },
+      { genre: 'oyaji', tag: '🤣 親父ギャグ', text: 'タイが食べたい', kana: 'たいがたべたい', price: 180 },
+      { genre: 'oyaji', tag: '🤣 親父ギャグ', text: 'イカがいかが', kana: 'いかがいかが', price: 160 },
+      { genre: 'oyaji', tag: '🤣 親父ギャグ', text: 'コンドルがめりこんどる', kana: 'こんどるがめりこんどる', price: 260 }
+    ];
+
+    const KANA_MAP = {
+      'あ': ['a'], 'い': ['i', 'yi'], 'う': ['u', 'wu'], 'え': ['e'], 'お': ['o'],
+      'か': ['ka', 'ca'], 'き': ['ki'], 'く': ['ku', 'cu'], 'け': ['ke'], 'こ': ['ko', 'co'],
+      'さ': ['sa'], 'し': ['si', 'shi', 'ci'], 'す': ['su'], 'せ': ['se'], 'そ': ['so'],
+      'た': ['ta'], 'ち': ['ti', 'chi'], 'つ': ['tu', 'tsu'], 'て': ['te'], 'と': ['to'],
+      'な': ['na'], 'に': ['ni'], 'ぬ': ['nu'], 'ね': ['ne'], 'の': ['no'],
+      'は': ['ha'], 'ひ': ['hi'], 'ふ': ['hu', 'fu'], 'へ': ['he'], 'ほ': ['ho'],
+      'ま': ['ma'], 'み': ['mi'], 'む': ['mu'], 'め': ['me'], 'も': ['mo'],
+      'や': ['ya'], 'ゆ': ['yu'], 'よ': ['yo'],
+      'ら': ['ra'], 'り': ['ri'], 'る': ['ru'], 'れ': ['re'], 'ろ': ['ro'],
+      'わ': ['wa'], 'を': ['wo'], 'ん': ['n', 'nn'],
+      'が': ['ga'], 'ぎ': ['gi'], 'ぐ': ['gu'], 'げ': ['ge'], 'ご': ['go'],
+      'ざ': ['za'], 'じ': ['zi', 'ji'], 'ず': ['zu'], 'ぜ': ['ze'], 'ぞ': ['zo'],
+      'だ': ['da'], 'ぢ': ['di'], 'づ': ['du'], 'で': ['de'], 'ど': ['do'],
+      'ば': ['ba'], 'び': ['bi'], 'ぶ': ['bu'], 'べ': ['be'], 'ぼ': ['bo'],
+      'ぱ': ['pa'], 'ぴ': ['pi'], 'ぷ': ['pu'], 'ぺ': ['pe'], 'ぽ': ['po'],
+      'きゃ': ['kya'], 'きゅ': ['kyu'], 'きょ': ['kyo'],
+      'しゃ': ['sya', 'sha'], 'しゅ': ['syu', 'shu'], 'しょ': ['syo', 'sho'],
+      'ちゃ': ['tya', 'cha'], 'ちゅ': ['tyu', 'chu'], 'ちょ': ['tyo', 'cho'],
+      'にゃ': ['nya'], 'にゅ': ['nyu'], 'にょ': ['nyo'],
+      'ひゃ': ['hya'], 'ひゅ': ['hyu'], 'ひょ': ['hyo'],
+      'みゃ': ['mya'], 'みゅ': ['myu'], 'みょ': ['myo'],
+      'りゃ': ['rya'], 'りゅ': ['ryu'], 'りょ': ['ryo'],
+      'ぎゃ': ['gya'], 'ぎゅ': ['gyu'], 'ぎょ': ['gyo'],
+      'じゃ': ['zya', 'ja', 'jya'], 'じゅ': ['zyu', 'ju', 'jyu'], 'じょ': ['zyo', 'jo', 'jyo'],
+      'びゃ': ['bya'], 'びゅ': ['byu'], 'びょ': ['byo'],
+      'ぴゃ': ['pya'], 'ぴゅ': ['pyu'], 'ぴょ': ['pyo'],
+      'じぇ': ['je', 'jye', 'zye'], 'でぃ': ['di', 'dhi'], 'うぃ': ['wi', 'uxi'],
+      'ぴゅ': ['pyu'], 'てぃ': ['ti', 'thi'], 'ふぁ': ['fa'], 'ふぃ': ['fi'],
+      'ー': ['-'], '、': [',']
+    };
+
+    // Tokenize kana into chunks with valid romaji options
+    function tokenizeKana(kana) {
+      const tokens = [];
+      let i = 0;
+      while (i < kana.length) {
+        const ch = kana[i];
+        const next = kana[i + 1] || '';
+
+        // Handle small tsu 'っ'
+        if (ch === 'っ' && next) {
+          const pair = kana.slice(i + 1, i + 3);
+          const nextOpts = KANA_MAP[pair] || KANA_MAP[next];
+          if (nextOpts) {
+            const c = nextOpts[0][0];
+            tokens.push({ options: [c, 'xtu', 'ltu'] });
+            i++;
+            continue;
+          }
+        }
+
+        // Handle digraphs (きゃ, しょ, etc.)
+        const two = kana.slice(i, i + 2);
+        if (KANA_MAP[two]) {
+          tokens.push({ options: KANA_MAP[two] });
+          i += 2;
+          continue;
+        }
+
+        // Single char
+        if (KANA_MAP[ch]) {
+          let opts = [...KANA_MAP[ch]];
+          // Allow single 'n' if next is consonant (not vowel or y or n or end)
+          if (ch === 'ん') {
+            const nextOpts = KANA_MAP[kana.slice(i + 1, i + 3)] || KANA_MAP[next];
+            const firstNext = nextOpts ? nextOpts[0][0] : '';
+            if (!next || 'aiueoyn'.includes(firstNext)) {
+              opts = ['nn', 'n'];
+            } else {
+              opts = ['n', 'nn'];
+            }
+          }
+          tokens.push({ options: opts });
+          i++;
+          continue;
+        }
+
+        tokens.push({ options: [ch] });
+        i++;
+      }
+      return tokens;
+    }
+
+    // =========================================================================
+    // 3. Levels (5 Stages)
+    // =========================================================================
+    const LEVELS = [
+      { id: 0, name: 'ベイビー・アランケイ', cps: 1.4, plateTime: 18 },
+      { id: 1, name: '少年・アランケイ', cps: 2.3, plateTime: 14 },
+      { id: 2, name: 'アランケイ・ノーマル', cps: 3.4, plateTime: 11 },
+      { id: 3, name: 'スーパーシニア・アランケイ', cps: 4.8, plateTime: 9 },
+      { id: 4, name: '伝説・ダイナブック神', cps: 6.5, plateTime: 7.5 }
+    ];
+
+    // =========================================================================
+    // 4. Web Audio SFX
+    // =========================================================================
+    let audioCtx = null;
+    let soundEnabled = true;
+
+    function ensureAudio() {
+      if (!audioCtx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (AC) audioCtx = new AC();
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume().catch(() => {});
+      }
+    }
+
+    function playKeyClick() {
+      if (!soundEnabled) return;
+      ensureAudio();
+      if (!audioCtx) return;
+      try {
+        const now = audioCtx.currentTime;
+        // Short mechanical switch click (noise burst + low thock)
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(220 + Math.random() * 40, now);
+        osc.frequency.exponentialRampToValueAtTime(75, now + 0.028);
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.032);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.035);
+      } catch (_) {}
+    }
+
+    function playSfx(type) {
+      if (!soundEnabled) return;
+      ensureAudio();
+      if (!audioCtx) return;
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      if (type === 'type') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(520 + Math.random() * 140, now);
+        gain.gain.setValueAtTime(0.05, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.045);
+        osc.start(now);
+        osc.stop(now + 0.05);
+      } else if (type === 'miss') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(140, now);
+        gain.gain.setValueAtTime(0.07, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+        osc.start(now);
+        osc.stop(now + 0.1);
+      } else if (type === 'clear') {
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(659.25, now);
+        osc.frequency.setValueAtTime(987.77, now + 0.06);
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+        osc.start(now);
+        osc.stop(now + 0.23);
+      } else if (type === 'finish') {
+        osc.type = 'square';
+        [523, 659, 784, 1046].forEach((f, i) => osc.frequency.setValueAtTime(f, now + i * 0.07));
+        gain.gain.setValueAtTime(0.09, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+        osc.start(now);
+        osc.stop(now + 0.36);
+      }
+    }
+
+    // =========================================================================
+    // 5. Game State
+    // =========================================================================
+    const state = {
+      status: 'title', // 'title' | 'playing' | 'result'
+      isPaused: false,
+      genre: 'all',
+      levelIdx: 2,
+      timeLeft: 60,
+      playerScore: 0,
+      playerPlates: 0,
+      alanScore: 0,
+      alanCharProgress: 0,
+      alanPlateTarget: 22,
+      streak: 0,
+      totalKeys: 0,
+      missKeys: 0,
+      greenCrt: false,
+      tick: 0,
+      // Current prompt typing state
+      promptQueue: [],
+      lastPromptText: '',
+      currentPrompt: null,
+      tokens: [],
+      tokenIdx: 0,
+      charInToken: '',
+      plateProgress: 0, // 0 -> 1 conveyor belt progress
+      conveyorOffset: 0,
+      popups: []
+    };
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const stageWrap = document.getElementById('stageWrap');
+    let W = 800;
+    let H = 380;
+
+    function resizeCanvas() {
+      const rect = stageWrap.getBoundingClientRect();
+      W = Math.max(320, Math.floor(rect.width));
+      H = Math.max(300, Math.floor(rect.height));
+      canvas.width = W;
+      canvas.height = H;
+      ctx.imageSmoothingEnabled = false;
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    function refillPromptQueue() {
+      const pool = state.genre === 'all'
+        ? [...PROMPTS]
+        : PROMPTS.filter((p) => p.genre === state.genre);
+      // Fisher-Yates shuffle
+      for (let i = pool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
+      }
+      // Avoid immediate repeat across deck boundaries
+      if (pool.length > 1 && pool[0].text === state.lastPromptText) {
+        [pool[0], pool[pool.length - 1]] = [pool[pool.length - 1], pool[0]];
+      }
+      state.promptQueue = pool;
+    }
+
+    function pickNextPrompt() {
+      if (!state.promptQueue || state.promptQueue.length === 0) {
+        refillPromptQueue();
+      }
+      const item = state.promptQueue.shift();
+      state.lastPromptText = item.text;
+      state.currentPrompt = item;
+      state.tokens = tokenizeKana(item.kana);
+      state.tokenIdx = 0;
+      state.charInToken = '';
+      state.plateProgress = 0;
+      renderTypingCard();
+    }
+
+    function renderTypingCard() {
+      const p = state.currentPrompt;
+      if (!p) return;
+      document.getElementById('cardCategory').textContent = p.tag;
+      document.getElementById('cardPrice').textContent = `+¥${p.price}`;
+      document.getElementById('cardKanji').textContent = p.text;
+      document.getElementById('cardKana').textContent = p.kana;
+
+      let typedStr = '';
+      let remainingStr = '';
+      for (let i = 0; i < state.tokens.length; i++) {
+        const tok = state.tokens[i];
+        if (i < state.tokenIdx) {
+          typedStr += tok.selected || tok.options[0];
+        } else if (i === state.tokenIdx) {
+          const match = tok.options.find((o) => o.startsWith(state.charInToken)) || tok.options[0];
+          typedStr += state.charInToken;
+          remainingStr += match.slice(state.charInToken.length);
+        } else {
+          remainingStr += tok.options[0];
+        }
+      }
+
+      document.getElementById('cardRomaji').innerHTML =
+        `<span class="text-[#88ad8e]">${typedStr}</span><span class="text-[#8f897d]">${remainingStr}</span>`;
+    }
+
+    function handleTypedChar(ch) {
+      if (state.status !== 'playing' || state.isPaused || !state.currentPrompt) return;
+      const lower = ch.toLowerCase();
+      if (!/^[a-z0-9\-]$/.test(lower)) return;
+
+      state.totalKeys++;
+      const tok = state.tokens[state.tokenIdx];
+      const nextPrefix = state.charInToken + lower;
+      const matchingOpt = tok.options.find((o) => o.startsWith(nextPrefix));
+
+      if (matchingOpt) {
+        state.charInToken = nextPrefix;
+        state.streak++;
+        playSfx('type');
+
+        if (state.charInToken === matchingOpt) {
+          tok.selected = matchingOpt;
+          state.tokenIdx++;
+          state.charInToken = '';
+        }
+
+        if (state.tokenIdx >= state.tokens.length) {
+          // Completed plate!
+          const bonus = state.streak >= 25 ? 60 : 0;
+          const earned = state.currentPrompt.price + bonus;
+          state.playerScore += earned;
+          state.playerPlates++;
+          playSfx('clear');
+          state.popups.push({ x: W * 0.25, y: 72, text: `+¥${earned}!`, color: '#38bdf8', life: 40 });
+          pickNextPrompt();
+        } else {
+          renderTypingCard();
+        }
+      } else {
+        // Check if previous token was 'n' and user typed second 'n' for 'ん'
+        state.missKeys++;
+        state.streak = 0;
+        playSfx('miss');
+        const card = document.getElementById('typingCard');
+        card.classList.remove('shake-anim');
+        void card.offsetWidth;
+        card.classList.add('shake-anim');
+      }
+      updateHUD();
+    }
+
+    function startGame(levelIdx) {
+      ensureAudio();
+      state.levelIdx = levelIdx;
+      state.status = 'playing';
+      state.isPaused = false;
+      document.getElementById('pauseOverlay').classList.add('hidden');
+      document.getElementById('pauseBtn').classList.remove('hidden');
+      document.getElementById('pauseBtn').textContent = '⏸ 一時停止';
+      state.timeLeft = 60;
+      state.playerScore = 0;
+      state.playerPlates = 0;
+      state.alanScore = 0;
+      state.alanCharProgress = 0;
+      state.streak = 0;
+      state.totalKeys = 0;
+      state.missKeys = 0;
+      state.popups = [];
+      state.promptQueue = [];
+      state.lastPromptText = '';
+
+      document.getElementById('titleOverlay').classList.add('hidden');
+      document.getElementById('resultOverlay').classList.add('hidden');
+      document.getElementById('typingCardWrap').classList.remove('hidden');
+      document.getElementById('quitBtn').classList.remove('hidden');
+      document.getElementById('hudLevelBadge').textContent = LEVELS[levelIdx].name;
+
+      pickNextPrompt();
+      updateHUD();
+    }
+
+    function finishGame() {
+      state.status = 'result';
+      playSfx('finish');
+      document.getElementById('typingCardWrap').classList.add('hidden');
+      document.getElementById('pauseBtn').classList.add('hidden');
+      document.getElementById('pauseOverlay').classList.add('hidden');
+
+      const win = state.playerScore >= state.alanScore;
+      const badge = document.getElementById('resultBadge');
+      badge.textContent = win ? '🏆 YOU WIN!' : '💻 ALAN KAY WINS!';
+      badge.className = win
+        ? 'mono text-xs font-extrabold px-3 py-1 rounded-full mb-2 bg-[#b88b4a] text-[#1a1815]'
+        : 'mono text-xs font-extrabold px-3 py-1 rounded-full mb-2 bg-[#9e4747] text-[#ebe6dc]';
+
+      document.getElementById('resultTitle').textContent = win
+        ? `${LEVELS[state.levelIdx].name} に勝利！`
+        : `${LEVELS[state.levelIdx].name} は速かった…！`;
+
+      document.getElementById('resPlayerScore').textContent = `¥${state.playerScore}`;
+      document.getElementById('resPlayerPlates').textContent = `${state.playerPlates} 問クリア`;
+      document.getElementById('resAlanName').textContent = LEVELS[state.levelIdx].name;
+      document.getElementById('resAlanScore').textContent = `¥${state.alanScore}`;
+
+      const acc = state.totalKeys > 0
+        ? Math.max(0, Math.round(((state.totalKeys - state.missKeys) / state.totalKeys) * 100))
+        : 100;
+      document.getElementById('resStats').textContent = `正確率 ${acc}%`;
+
+      document.getElementById('resultOverlay').classList.remove('hidden');
+    }
+
+    function updateHUD() {
+      document.getElementById('hudPlayerScore').textContent = `¥${state.playerScore}`;
+      document.getElementById('hudAlanScore').textContent = `¥${state.alanScore}`;
+      document.getElementById('hudStreak').textContent = state.streak;
+      document.getElementById('hudTime').textContent = Math.ceil(state.timeLeft);
+    }
+
+    // =========================================================================
+    // 6. Main Loop & Retro Sushi Conveyor Rendering
+    // =========================================================================
+    let lastTime = performance.now();
+
+    function loop(now) {
+      const dt = Math.min(0.1, (now - lastTime) / 1000);
+      lastTime = now;
+      state.tick++;
+
+      if (state.status === 'playing' && !state.isPaused) {
+        state.timeLeft -= dt;
+        if (state.timeLeft <= 0) {
+          state.timeLeft = 0;
+          updateHUD();
+          finishGame();
+        } else {
+          // Conveyor plate moves from right to left
+          const lvl = LEVELS[state.levelIdx];
+          state.plateProgress += dt / lvl.plateTime;
+          state.conveyorOffset = (state.conveyorOffset + dt * 90) % 32;
+
+          if (state.plateProgress >= 1) {
+            // Plate passed off-screen!
+            state.popups.push({ x: W * 0.5, y: 90, text: 'TIME UP PLATE!', color: '#f87171', life: 30 });
+            pickNextPrompt();
+          }
+
+          // Alan Kay opponent typing simulation
+          state.alanCharProgress += lvl.cps * dt;
+          if (state.alanCharProgress >= state.alanPlateTarget) {
+            state.alanCharProgress -= state.alanPlateTarget;
+            const alanEarn = [180, 240, 300, 380, 460][state.levelIdx];
+            state.alanScore += alanEarn;
+            state.popups.push({ x: W * 0.72, y: 72, text: `ALAN +¥${alanEarn}`, color: '#fb7185', life: 36 });
+          }
+
+          if (state.tick % 6 === 0) updateHUD();
+        }
+      } else {
+        state.conveyorOffset = (state.conveyorOffset + dt * 35) % 32;
+      }
+
+      // Draw CRT Stage
+      ctx.fillStyle = state.greenCrt ? '#0d1f12' : '#171918';
+      ctx.fillRect(0, 0, W, H);
+
+      // Top Race Track: Player vs Alan Kay
+      ctx.fillStyle = state.greenCrt ? '#132b19' : '#212423';
+      ctx.fillRect(0, 0, W, 86);
+      ctx.fillStyle = state.greenCrt ? '#24472e' : '#3a3d3b';
+      ctx.fillRect(0, 84, W, 3);
+
+      const maxRaceScore = Math.max(2500, state.playerScore + 400, state.alanScore + 400);
+      const pX = 24 + (Math.min(1, state.playerScore / maxRaceScore)) * (W - 110);
+      const aX = 24 + (Math.min(1, state.alanScore / maxRaceScore)) * (W - 110);
+
+      // Player Sprite (Blue shirt)
+      const bounceP = state.status === 'playing' ? Math.abs(Math.sin(state.tick * 0.18)) * 3 : 0;
+      drawPixelSprite(ctx, PLAYER_SPRITE, pX, 12 - bounceP, 2);
+      ctx.font = 'bold 10px "JetBrains Mono", monospace';
+      ctx.fillStyle = '#84a9c0';
+      ctx.fillText('YOU', pX + 4, 50);
+
+      // Alan Kay Opponent Sprite
+      const bounceA = state.status === 'playing' ? Math.abs(Math.cos(state.tick * 0.22)) * 3 : 0;
+      drawPixelSprite(ctx, getAlanSpriteForLevel(state.levelIdx), aX, 42 - bounceA, 2);
+      ctx.fillStyle = '#c97b7b';
+      ctx.fillText('ALAN', aX + 2, 80);
+
+      // Sushi Conveyor Belt at bottom of CRT stage
+      const beltY = H - 64;
+      ctx.fillStyle = state.greenCrt ? '#14532d' : '#3f362e';
+      ctx.fillRect(0, beltY, W, 64);
+      ctx.fillStyle = state.greenCrt ? '#4f805c' : '#8c8374';
+      ctx.fillRect(0, beltY, W, 4);
+
+      // Moving conveyor slats
+      ctx.fillStyle = state.greenCrt ? '#052e16' : '#292524';
+      for (let bx = -state.conveyorOffset; bx < W + 32; bx += 32) {
+        ctx.fillRect(Math.floor(bx), beltY + 14, 14, 6);
+      }
+
+      // Moving Plate representing remaining time for current prompt
+      if (state.status === 'playing') {
+        const plateX = (W - 80) * (1 - state.plateProgress) + 20;
+        drawPixelSprite(ctx, PLATE_SPRITE, plateX, beltY - 12, 4);
+      }
+
+      // Popups
+      state.popups = state.popups.filter((pop) => {
+        pop.y -= 0.7;
+        pop.life--;
+        ctx.font = 'bold 12px "JetBrains Mono", monospace';
+        ctx.fillStyle = pop.color;
+        ctx.fillText(pop.text, Math.floor(pop.x), Math.floor(pop.y));
+        return pop.life > 0;
+      });
+
+      if (state.greenCrt) {
+        ctx.fillStyle = 'rgba(34, 197, 94, 0.1)';
+        ctx.fillRect(0, 0, W, H);
+      }
+
+      requestAnimationFrame(loop);
+    }
+
+    // =========================================================================
+    // 7. Xerox Alto Interactive Keyboard & Input Handling
+    // =========================================================================
+    const ALTO_ROWS = [
+      [
+        { label: 'ESC', code: 'Escape', dark: true, w: 'flex-[1.1]' },
+        { label: '1', ch: '1', code: 'Digit1' }, { label: '2', ch: '2', code: 'Digit2' }, { label: '3', ch: '3', code: 'Digit3' },
+        { label: '4', ch: '4', code: 'Digit4' }, { label: '5', ch: '5', code: 'Digit5' }, { label: '6', ch: '6', code: 'Digit6' },
+        { label: '7', ch: '7', code: 'Digit7' }, { label: '8', ch: '8', code: 'Digit8' }, { label: '9', ch: '9', code: 'Digit9' },
+        { label: '0', ch: '0', code: 'Digit0' }, { label: '-', ch: '-', code: 'Minus' }, { label: '=', code: 'Equal' },
+        { label: 'BS', code: 'Backspace', dark: true, w: 'flex-[1.3]' }
+      ],
+      [
+        { label: 'TAB', code: 'Tab', dark: true, w: 'flex-[1.3]' },
+        { label: 'Q', ch: 'q', code: 'KeyQ' }, { label: 'W', ch: 'w', code: 'KeyW' }, { label: 'E', ch: 'e', code: 'KeyE' },
+        { label: 'R', ch: 'r', code: 'KeyR' }, { label: 'T', ch: 't', code: 'KeyT' }, { label: 'Y', ch: 'y', code: 'KeyY' },
+        { label: 'U', ch: 'u', code: 'KeyU' }, { label: 'I', ch: 'i', code: 'KeyI' }, { label: 'O', ch: 'o', code: 'KeyO' },
+        { label: 'P', ch: 'p', code: 'KeyP' }, { label: '[', code: 'BracketLeft' }, { label: ']', code: 'BracketRight' },
+        { label: 'DEL', code: 'Delete', dark: true, w: 'flex-[1.1]' }
+      ],
+      [
+        { label: 'CTRL', code: 'ControlLeft', dark: true, w: 'flex-[1.5]' },
+        { label: 'A', ch: 'a', code: 'KeyA' }, { label: 'S', ch: 's', code: 'KeyS' }, { label: 'D', ch: 'd', code: 'KeyD' },
+        { label: 'F', ch: 'f', code: 'KeyF' }, { label: 'G', ch: 'g', code: 'KeyG' }, { label: 'H', ch: 'h', code: 'KeyH' },
+        { label: 'J', ch: 'j', code: 'KeyJ' }, { label: 'K', ch: 'k', code: 'KeyK' }, { label: 'L', ch: 'l', code: 'KeyL' },
+        { label: ';', code: 'Semicolon' }, { label: "'", code: 'Quote' },
+        { label: 'RETURN', code: 'Enter', dark: true, w: 'flex-[1.8]' }
+      ],
+      [
+        { label: 'SHIFT', code: 'ShiftLeft', dark: true, w: 'flex-[1.9]' },
+        { label: 'Z', ch: 'z', code: 'KeyZ' }, { label: 'X', ch: 'x', code: 'KeyX' }, { label: 'C', ch: 'c', code: 'KeyC' },
+        { label: 'V', ch: 'v', code: 'KeyV' }, { label: 'B', ch: 'b', code: 'KeyB' }, { label: 'N', ch: 'n', code: 'KeyN' },
+        { label: 'M', ch: 'm', code: 'KeyM' }, { label: ',', ch: ',', code: 'Comma' }, { label: '.', code: 'Period' },
+        { label: '/', code: 'Slash' },
+        { label: 'SHIFT', code: 'ShiftRight', dark: true, w: 'flex-[1.9]' }
+      ],
+      [
+        { label: 'LF', code: 'AltLeft', dark: true, w: 'flex-[1.4]' },
+        { label: 'SPACE', code: 'Space', w: 'flex-[8.5]' },
+        { label: '▲', code: 'ArrowUp', dark: true, w: 'flex-[1.2]' }
+      ]
+    ];
+
+    const keyElementsMap = {};
+    function buildAltoKeyboard() {
+      const container = document.getElementById('altoKeyboard');
+      container.innerHTML = '';
+      ALTO_ROWS.forEach((row) => {
+        const rowEl = document.createElement('div');
+        rowEl.className = 'flex items-center gap-1';
+        row.forEach((k) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = [
+            'alto-key rounded-md h-7 sm:h-8 px-1 mono font-bold text-[9px] sm:text-[10px] flex items-center justify-center truncate',
+            k.w || 'flex-1',
+            k.dark ? 'alto-key-dark' : ''
+          ].join(' ');
+          btn.textContent = k.label;
+          btn.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            ensureAudio();
+            btn.classList.add('is-pressed');
+            playKeyClick();
+            if (k.code === 'Escape' && state.status === 'playing') {
+              togglePause();
+            } else if (k.ch) {
+              handleTypedChar(k.ch);
+            }
+          });
+          const rel = () => btn.classList.remove('is-pressed');
+          btn.addEventListener('pointerup', rel);
+          btn.addEventListener('pointerleave', rel);
+          keyElementsMap[k.code] = btn;
+          rowEl.appendChild(btn);
+        });
+        container.appendChild(rowEl);
+      });
+    }
+
+    function togglePause() {
+      if (state.status !== 'playing') return;
+      state.isPaused = !state.isPaused;
+      const pauseOverlay = document.getElementById('pauseOverlay');
+      const cardWrap = document.getElementById('typingCardWrap');
+      const pauseBtn = document.getElementById('pauseBtn');
+      if (state.isPaused) {
+        pauseOverlay.classList.remove('hidden');
+        cardWrap.classList.add('hidden');
+        pauseBtn.textContent = '▶ 再開';
+      } else {
+        pauseOverlay.classList.add('hidden');
+        cardWrap.classList.remove('hidden');
+        pauseBtn.textContent = '⏸ 一時停止';
+      }
+    }
+
+    document.getElementById('pauseBtn').addEventListener('click', togglePause);
+    document.getElementById('resumeBtn').addEventListener('click', togglePause);
+
+    window.addEventListener('keydown', (e) => {
+      const el = keyElementsMap[e.code];
+      if (el) el.classList.add('is-pressed');
+      if (!e.repeat) playKeyClick();
+      if (e.code === 'Escape' && state.status === 'playing') {
+        e.preventDefault();
+        togglePause();
+        return;
+      }
+      if (state.status === 'playing' && !state.isPaused && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();
+        handleTypedChar(e.key);
+      }
+    });
+
+    window.addEventListener('keyup', (e) => {
+      const el = keyElementsMap[e.code];
+      if (el) el.classList.remove('is-pressed');
+    });
+
+    // Mobile virtual input support
+    const mobileInput = document.getElementById('mobileInput');
+    document.getElementById('focusMobileBtn').addEventListener('click', () => mobileInput.focus());
+    mobileInput.addEventListener('input', (e) => {
+      const val = e.target.value;
+      if (val) {
+        for (const ch of val) handleTypedChar(ch);
+        e.target.value = '';
+      }
+    });
+
+    // Genre & Level buttons
+    document.querySelectorAll('.genre-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        state.genre = btn.getAttribute('data-genre');
+        document.querySelectorAll('.genre-btn').forEach((b) => {
+          b.className = b === btn
+            ? 'genre-btn px-2.5 py-1 rounded-lg text-[11px] font-bold bg-[#b88b4a] text-[#1a1815]'
+            : 'genre-btn px-2.5 py-1 rounded-lg text-[11px] font-bold bg-stone-800 text-stone-300 hover:bg-stone-700';
+        });
+      });
+    });
+
+    document.querySelectorAll('.level-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        startGame(Number(btn.getAttribute('data-level')));
+      });
+    });
+
+    document.getElementById('retryBtn').addEventListener('click', () => startGame(state.levelIdx));
+    function goTitle() {
+      state.status = 'title';
+      state.isPaused = false;
+      document.getElementById('typingCardWrap').classList.add('hidden');
+      document.getElementById('pauseOverlay').classList.add('hidden');
+      document.getElementById('pauseBtn').classList.add('hidden');
+      document.getElementById('resultOverlay').classList.add('hidden');
+      document.getElementById('quitBtn').classList.add('hidden');
+      document.getElementById('titleOverlay').classList.remove('hidden');
+    }
+    document.getElementById('backTitleBtn').addEventListener('click', goTitle);
+    document.getElementById('quitBtn').addEventListener('click', goTitle);
+
+    document.getElementById('crtModeBtn').addEventListener('click', (e) => {
+      state.greenCrt = !state.greenCrt;
+      e.currentTarget.textContent = state.greenCrt ? '💚 GREEN CRT' : '📺 COLOR';
+    });
+
+    document.getElementById('soundBtn').addEventListener('click', (e) => {
+      soundEnabled = !soundEnabled;
+      e.currentTarget.textContent = soundEnabled ? '🔊 SFX ON' : '🔇 SFX OFF';
+      if (soundEnabled) playSfx('type');
+    });
+
+    window.addEventListener('load', () => {
+      resizeCanvas();
+      buildAltoKeyboard();
+      renderLevelPreviews();
+      requestAnimationFrame(loop);
+    });
+  </script>
+</body>
+</html>
